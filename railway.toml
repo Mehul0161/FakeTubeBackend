@@ -1,0 +1,35 @@
+[build]
+builder = "nixpacks"
+buildCommand = "npm install"
+
+[deploy]
+startCommand = "node src/server.js"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+[deploy.env]
+NODE_ENV = "production"
+
+[[services]]
+name = "api"
+envs = ["MONGODB_URI", "JWT_SECRET", "YOUTUBE_API_KEY", "ENABLE_VIDEO_CACHE_CRON"]
+
+[[services.ports]]
+handlers = ["http"]
+port = "80"
+force = true
+
+[[services.ports]]
+handlers = ["http"]
+port = "443"
+force = true
+
+[[services.routes]]
+source = "/api"
+destination = "/api"
+
+[[services.routes]]
+source = "/(.*)"
+destination = "/index.html" 

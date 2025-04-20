@@ -17,11 +17,31 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',  // Vite dev server
+  'http://localhost:3000',  // Alternative local port
+  'https://faketube.vercel.app',  // Your Vercel frontend URL
+  'https://faketube-frontend.vercel.app'  // Alternative Vercel URL
+];
+
 // Middleware
 app.use(cors({
-  origin: '*', // In production, replace with your frontend URL
-  credentials: true
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
